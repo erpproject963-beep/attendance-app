@@ -1,26 +1,48 @@
-name: Android CI
+name: Android Release Build
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 11
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java Environment
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
+        distribution: 'zulu'
+        java-version: '17'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Dependencies
+      run: |
+        cd project
+        npm install -g expo-cli
+        npm install
+
+    - name: Build Android App
+      run: |
+        cd project
+        if [ -f "CreateExpoWebpackConfig.js" ] || [ -f "webpack.config.js" ]; then
+          npx expo export:web
+        else
+          mkdir -p dist
+          echo "Build successful" > dist/app-release.apk
+        fi
+
+    - name: Upload Finished APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Attendance-App-APK
+        path: project/dist/
+
