@@ -1,4 +1,4 @@
-name: Android Release Build
+name: Android Production Build
 
 on:
   push:
@@ -13,36 +13,24 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up Java Environment
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
 
-    - name: Install Dependencies
+    - name: Install Project Dependencies
       run: |
         cd project
-        npm install -g expo-cli
+        npm install -g eas-cli
         npm install
 
-    - name: Build Android App
+    - name: Compile and Export Android Project
       run: |
         cd project
-        if [ -f "CreateExpoWebpackConfig.js" ] || [ -f "webpack.config.js" ]; then
-          npx expo export:web
-        else
-          mkdir -p dist
-          echo "Build successful" > dist/app-release.apk
-        fi
+        npx expo export --platform android
 
-    - name: Upload Finished APK
+    - name: Upload Real App Code
       uses: actions/upload-artifact@v4
       with:
-        name: Attendance-App-APK
+        name: Attendance-App-Bundle
         path: project/dist/
-
